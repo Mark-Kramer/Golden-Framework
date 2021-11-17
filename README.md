@@ -1,3 +1,5 @@
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Mark-Kramer/Golden-Framework/HEAD)
+
 Code to generate all simulations and figures in:
 
 [Golden rhythms as a theoretical framework for the observed organization of brain rhythms and cross-frequency interactions](XXX)
