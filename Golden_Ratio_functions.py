@@ -29,10 +29,10 @@ def damped_coupled_harmonic_oscillators(t,x,omega,beta,ft,f):
 
 # Function to run the 8 damped, coupled harmonic oscillators ##############################
 def run_damped_coupled_harmonic_oscillators(network, gain):
+    
     # Network (fix perturbed oscillator as 4th, fix damping beta = 2)
     omega  = 2*np.pi*np.asarray(network["f_k"])
     beta   = 2
-    osc_to_perturb = 4;
     
     # Gain (fix constant gain g_C = 50)
     f_S    = gain["f_S"]
@@ -41,13 +41,13 @@ def run_damped_coupled_harmonic_oscillators(network, gain):
     t_gain = np.arange(0,3,0.002)
     f_gain = g_C*np.ones(t_gain.shape) + g_S*np.cos(2*np.pi*f_S*t_gain)
 
-    # Initialize (1 s, gain=0)
-    Tmax  = 0.5;  x0 = np.zeros(16)
+    # Initialize (0.5 s, gain=0) to allow oscillators to reach equilibrium.
+    Tmax  = 0.5; x0 = np.zeros(16)
     pre   = solve_ivp(damped_coupled_harmonic_oscillators, [0,Tmax], x0, args=(omega,beta,t_gain,0*f_gain), max_step=0.01)
     
-    # Perturb oscillator (4 s, gain > 0)
-    Tmax  = 2.5;  x0 = np.zeros(16); x0[2*network["k_perturbed"]]=1
-    post  = solve_ivp(damped_coupled_harmonic_oscillators, [0,Tmax], x0, args=(omega,beta,t_gain,f_gain), max_step=0.01)
+    # Perturb oscillator (2.5 s, gain > 0)
+    Tmax  = 2.5; x0 = np.zeros(16); x0[2*network["k_perturbed"]]=1
+    post  = solve_ivp(damped_coupled_harmonic_oscillators, [0,Tmax], x0, args=(omega,beta,t_gain,  f_gain), max_step=0.01)
     
     # Concatenate results, perturbation at t=0.
     t = np.concatenate( (pre.t-pre.t[-1],post.t) )
@@ -62,27 +62,21 @@ def plot_model_traces(t,x,network,gain):
     f_k    = network["f_k"]
     
     counter=0
-    for k in np.arange(0,16,2):
-        #p=plt.subplot(8,1,counter)
+    for k in np.arange(0,16,2):                         # Plot the "position" x for each oscillator
         if k == network["k_perturbed"]*2:
-            plt.plot(t,counter+x[k],'r',linewidth=1)
+            plt.plot(t,counter+x[k],'r',linewidth=1)    # ... make the perturbed oscillator RED.
         else:
-            plt.plot(t,counter+x[k]*10,'k',linewidth=1)
-        counter=counter+1
+            plt.plot(t,counter+x[k]*10,'k',linewidth=1) # ... otherwise, make it BLACK.
+        counter=counter+1                               # y-axis indicates freq of each oscillator.
     plt.yticks(np.arange(0,counter), ["%.1f" % number for number in f_k])
-    plt.xticks([0,1,2])
-    plt.tick_params(
-        axis='y',          # changes apply to the x-axis
-        which='major',      # both major and minor ticks are affected
-        left=False,      # ticks along the bottom edge are off
-        right=False)         # ticks along the top edge are off
-    ax = plt.gca()
-    ax.xaxis.grid(True)
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.spines['left'].set_visible(False)
+    plt.tick_params(axis='y',which='major',left=False,right=False) # ... and remove y-axis ticks.
+    plt.xticks([0,1,2])                                 # x-axis indicates times at 0,1,2, s.
+    plt.gca().xaxis.grid(True)                          # Add vertical lines for x axis.
+    plt.gca().spines['top'].set_visible(False)          # Prettify plot.
+    plt.gca().spines['right'].set_visible(False)
+    plt.gca().spines['left'].set_visible(False)
     plt.xlabel('Time [s]')
-    plt.ylabel('Node frequency [Hz]')
+    plt.ylabel('Oscillator frequency [Hz]')
         
 # Plot the gain results. #################################################################
 def plot_gain_traces(res):
@@ -91,57 +85,29 @@ def plot_gain_traces(res):
     A      = res["A"]
     driver = res["network"][0]["k_perturbed"][0][0][0]
     
-    #yspacing = np.arange(0,8)*3
-    #yspacing[driver]=yspacing[driver]-2
     counter=0
     y0 = np.zeros(8)
-    for k in np.arange(0,8):
-        A0 = np.log10(A[2*k,:])  # Get trace.
-        A0 = A0-np.min(A0)       # Set min to 0
-        #p=plt.subplot(8,1,counter)
-        #plt.tick_params(
-        #    axis='x',          # changes apply to the x-axis
-        #    which='both',      # both major and minor ticks are affected
-        #    bottom=False,      # ticks along the bottom edge are off
-        #    top=False,         # ticks along the top edge are off
-        #    labelbottom=True) # labels along the bottom edge are off
-        if k == driver:
+    for k in np.arange(0,8):     # For each oscillator,
+        A0 = np.log10(A[2*k,:])  # ... get log10(amplitude),
+        A0 = A0-np.min(A0)       # ... set min to 0.
+        if k == driver:          # If it's the perturbed node, plot it RED,
             plt.semilogx(f_S,1.5*k+A0,'r',linewidth=1)
-        else:
+        else:                    # ... otherwise, plot it BLACK.
             plt.semilogx(f_S,1.5*k+A0,'k',linewidth=1)
-        y0[k] = 1.5*k+A0[0]
-        #ax = plt.gca()
-        #ylim = ax.get_ylim()
-        #plt.ylim([-0.5, 2.5])
-        #plt.text(f_k[0]+0.1,1,['f = '+"%.1f" % f_k[counter-1]][0])
-        #niceaxis(p)
-        #plt.xticks(f_k, f_k, rotation='vertical')
-        #ax = plt.gca()
-        #ax.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
-        #plt.xlim([f_k[0]-0.1, f_S[-1]])
-        
+        y0[k] = 1.5*k+A0[0]      # Offset in y to make plot look nice.
         counter=counter+1
-    plt.plot([1,1], [1,2], 'k', 'LineWidth', 4)
-    plt.yticks(y0, ["%.1f" % number for number in f_k])
-    plt.xticks(f_k, ["%.1f" % number for number in f_k])
-    plt.tick_params(
-        axis='x',          # changes apply to the x-axis
-        which='minor',      # both major and minor ticks are affected
-        bottom=False,      # ticks along the bottom edge are off
-        top=False)         # ticks along the top edge are off
-    plt.tick_params(
-        axis='y',          # changes apply to the x-axis
-        which='major',      # both major and minor ticks are affected
-        left=False,      # ticks along the bottom edge are off
-        right=False)         # ticks along the top edge are off
+    plt.plot([1,1], [1,2], 'k', 'LineWidth', 4)           # Include scale bar in y-direction (1).
+    plt.yticks(y0, ["%.1f" %  number for number in f_k])  # Y-tick label = oscillator freq.
+    plt.xticks(f_k, ["%.1f" % number for number in f_k])  # X-tick label = oscillator freq.
+    plt.tick_params(axis='x',which='minor',bottom=False,top=False) # Clean up the tick marks.
+    plt.tick_params(axis='y',which='major',left=False,right=False)
     plt.xlim([1,np.max(f_S)])
-    ax = plt.gca()
-    ax.xaxis.grid(True)
-    ax.spines['top'].set_visible(False)
-    ax.spines['left'].set_visible(False)
-    ax.spines['right'].set_visible(False)
+    plt.gca().xaxis.grid(True)                            # Add vertical lines for x axis.
+    plt.gca().spines['top'].set_visible(False)            # Prettify plot.
+    plt.gca().spines['left'].set_visible(False)
+    plt.gca().spines['right'].set_visible(False)
     plt.xlabel('Gain frequency [Hz]')
-    plt.ylabel('Node frequency [Hz]')
+    plt.ylabel('Oscillator frequency [Hz]')
         
 # Plot the gain results. #################################################################
 def plot_gain_traces_two_groups(res, f_k_ticks):
@@ -151,50 +117,23 @@ def plot_gain_traces_two_groups(res, f_k_ticks):
     driver = res["network"][0]["k_perturbed"][0][0][0]
     
     y0 = np.zeros(8)
-    for k in np.arange(0,8):
-        A0 = np.log10(A[2*k,:])  # Get trace.
-        A0 = A0-np.min(A0)       # Set min to 0
-        if k == driver:
+    for k in np.arange(0,8):     # For each oscillator,
+        A0 = np.log10(A[2*k,:])  # ... get log10(amplitude),
+        A0 = A0-np.min(A0)       # ... set min to 0.
+        if k == driver:          # If it's the perturbed node, plot it RED,
             plt.semilogx(f_S,1.5*k+A0,'r',linewidth=1)
-        else:
+        else:                    # ... otherwise, plot it BLACK.
             plt.semilogx(f_S,1.5*k+A0,'k',linewidth=1)
-        y0[k] = 1.5*k+A0[0]
-        #plt.tick_params(
-        #    axis='x',          # changes apply to the x-axis
-        #    which='both',      # both major and minor ticks are affected
-        #    bottom=False,      # ticks along the bottom edge are off
-        #    top=False,         # ticks along the top edge are off
-        #    labelbottom=True) # labels along the bottom edge are off
-        #if k == res["network"]["k_perturbed"]*2:
-        #    plt.plot(f_S,np.log10(A[k]),'r',linewidth=1)
-        #else:
-        #    plt.plot(f_S,np.log10(A[k]),linewidth=1)
-        #ax = plt.gca()
-        #ylim = ax.get_ylim()
-        #plt.ylim([-0.5, 2.5])
-        #plt.text(f_k[0]+0.1,1,['f = '+"%.1f" % f_k[counter-1]][0])
-        #niceaxis(p)
-        #ax = plt.gca()
-        #ax.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
-        #plt.xlim([f_k[0]-1, f_S[-1]])
-        #counter=counter+1
-    plt.yticks(y0,        ["%.1f" % number for number in f_k])
-    plt.xticks(f_k_ticks, ["%.1f" % number for number in f_k_ticks])
+        y0[k] = 1.5*k+A0[0]      # Offset in y to make plot look nice.
+    plt.plot([np.min(f_S),np.min(f_S)], [1,2], 'k', 'LineWidth', 4) # Include scale bar in y-direction (1).
+    plt.yticks(y0,        ["%.1f" % number for number in f_k])      # Y-tick label = oscillator freq.
+    plt.xticks(f_k_ticks, ["%.1f" % number for number in f_k_ticks])# X-tick label = user specified input.
+    plt.tick_params(axis='x',which='minor',bottom=False,top=False)  # Clean up the tick marks.
+    plt.tick_params(axis='y',which='major',left=False,right=False)
     plt.xlim([np.min(f_S), np.max(f_S)])
-    plt.tick_params(
-        axis='x',          # changes apply to the x-axis
-        which='minor',      # both major and minor ticks are affected
-        bottom=False,      # ticks along the bottom edge are off
-        top=False)         # ticks along the top edge are off
-    plt.tick_params(
-        axis='y',          # changes apply to the x-axis
-        which='major',      # both major and minor ticks are affected
-        left=False,      # ticks along the bottom edge are off
-        right=False)         # ticks along the top edge are off
-    ax = plt.gca()
-    ax.xaxis.grid(True)
-    ax.spines['top'].set_visible(False)
-    ax.spines['left'].set_visible(False)
-    ax.spines['right'].set_visible(False)
+    plt.gca().xaxis.grid(True)                            # Add vertical lines for x axis.
+    plt.gca().spines['top'].set_visible(False)            # Prettify plot.
+    plt.gca().spines['left'].set_visible(False)
+    plt.gca().spines['right'].set_visible(False)
     plt.xlabel('Gain frequency [Hz]')
-    plt.ylabel('Node frequency [Hz]')
+    plt.ylabel('Oscillator frequency [Hz]')
