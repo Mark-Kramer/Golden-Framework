@@ -12,3 +12,4 @@ This repository contains code to perform the simulations and generate the figure
 | [Figure 5](./Figure-5.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Mark-Kramer/Golden-Framework/blob/main/Figure-5.ipynb) |
 | [Figure 6](./Figure-6.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Mark-Kramer/Golden-Framework/blob/main/Figure-6.ipynb) |
 | [Figure 7](./Figure-7.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Mark-Kramer/Golden-Framework/blob/main/Figure-7.ipynb) |
+| [Figure 8](./Figure-8.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Mark-Kramer/Golden-Framework/blob/main/Figure-8.ipynb) |
