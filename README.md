@@ -1,6 +1,6 @@
 This repository contains code to perform the simulations and generate the figures in:
 
-[Golden rhythms as a theoretical framework for cross-frequency organization](https://arxiv.org/abs/2111.09953)
+[Golden rhythms as a theoretical framework for cross-frequency organization](https://nbdt.scholasticahq.com/article/38960-golden-rhythms-as-a-theoretical-framework-for-cross-frequency-organization)
 
 ---
 
